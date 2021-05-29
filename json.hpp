@@ -334,22 +334,27 @@ class JSON
             return JSONConstWrapper<deque<JSON>>( nullptr );
         }
 
-        string dump( int depth = 1, string tab = "  ") const {
+        string dump( int depth = 1, string tab = "\t") const {
             string pad = "";
             for( int i = 0; i < depth; ++i, pad += tab );
+            string lessPad = pad;
+            lessPad.erase(0, 1);
 
             switch( Type ) {
                 case Class::Null:
                     return "null";
                 case Class::Object: {
-                    string s = "{\n";
+                    string s = lessPad + "{\n";
+                    if (depth > 1) {
+                        s = "\n" + s;
+                    }
                     bool skip = true;
                     for( auto &p : *Internal.Map ) {
                         if( !skip ) s += ",\n";
-                        s += ( pad + "\"" + p.first + "\" : " + p.second.dump( depth + 1, tab ) );
+                        s += ( pad + "\"" + p.first + "\": " + p.second.dump( depth + 1, tab ) );
                         skip = false;
                     }
-                    s += ( "\n" + pad.erase( 0, 2 ) + "}" ) ;
+                    s += ( "\n" + lessPad + "}" ) ;
                     return s;
                 }
                 case Class::Array: {
@@ -359,6 +364,9 @@ class JSON
                         if( !skip ) s += ", ";
                         s += p.dump( depth + 1, tab );
                         skip = false;
+                    }
+                    if (!Internal.List->empty()) {
+                        s += "\n" + lessPad;
                     }
                     s += "]";
                     return s;
